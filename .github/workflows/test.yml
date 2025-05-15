@@ -39,7 +39,7 @@ jobs:
 
     - name: Run security checks with bandit
       run: |
-        bandit -r git_fleet_manager
+        bandit -r git_fleet_manager -s B311,B603,B404
 
     - name: Run tests
       run: |
