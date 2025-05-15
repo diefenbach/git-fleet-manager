@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "git_fleet_manager"
+version = "0.1.1"
+description = "A command line tool for managing several git repositories at once"
+readme = "README.md"
+authors = [
+    {name = "Kai Diefenbach", email = "kai.diefenbach@iqpp.de"}
+]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+requires-python = ">=3.6"
+
+[project.urls]
+"Homepage" = "https://github.com/diefenbach/git-fleet-manager"
+
+[project.scripts]
+gfm = "git_fleet_manager.cli:main"
+
+# Bandit configuration
+[tool.bandit]
+exclude_dirs = ["tests", "build"]
+targets = ["git_fleet_manager"]
+skips = ["B311", "B603", "B404"]  # Skip false-positive warnings for random numbers, subprocess without shell=True, and subprocess import
+
+# Black configuration
+[tool.black]
+line-length = 120
+
+# Ruff configuration
+[tool.ruff]
+line-length = 120
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=git_fleet_manager"
+
+# Development dependencies
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "ruff>=0.0.200",
+    "bandit>=1.7.0",
+    "pre-commit>=3.0.0",
+    "detect-secrets>=1.4.0",
+]
