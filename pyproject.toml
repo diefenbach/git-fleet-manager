@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git_fleet_manager"
-version = "0.1.2"
+version = "0.1.3"
 description = "A command line tool for managing several git repositories at once"
 readme = "README.md"
 authors = [
