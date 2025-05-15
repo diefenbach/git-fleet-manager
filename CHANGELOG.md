@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Future features will be listed here
+- Added GitHub Actions workflows for CI/CD:
+  - Automated testing on multiple Python versions and platforms
+  - Publish to PyPI on new releases
 
 ## [0.1.2] - 2025-05-15
 

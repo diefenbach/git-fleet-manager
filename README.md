@@ -3,6 +3,7 @@
 git-fleet-manager is a command-line tool for managing multiple Git repositories at once. It allows you to perform common Git operations such as checking the status, pulling, pushing, and viewing commit logs across multiple repositories in a specified directory.
 
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/diefenbach/git-fleet-manager)
+[![Test](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml/badge.svg)](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml)
 
 ## Features
 
@@ -123,6 +124,11 @@ git_fleet_manager/
 ├── git_utils.py       # Utility functions for Git operations
 ├── cli.py             # Command-line interface for git-fleet-manager
 └── __init__.py        # Package initialization and versioning
+
+.github/
+└── workflows/         # GitHub Actions workflow files
+    ├── test.yml       # CI workflow for testing
+    └── publish.yml    # CD workflow for PyPI publishing
 ```
 
 ## Source Code
