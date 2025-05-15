@@ -4,8 +4,10 @@ Utility functions for Git operations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Find the absolute path to the git executable
 GIT_EXECUTABLE = shutil.which("git")
@@ -193,10 +195,42 @@ def pull_repositories(directory="."):
     print(f"Attempting to pull changes for {len(repos)} git repositories in {directory}")
     print("-" * 50)
 
-    for repo in repos:
-        repo_name = repo.name
-        result = pull_repository(repo)
+    total = len(repos)
+    completed = 0
+    results = []
 
+    # Print initial progress
+    sys.stdout.write(f"Pulling repositories [0/{total}]\r")
+    sys.stdout.flush()
+
+    with ThreadPoolExecutor() as executor:
+        # Start all repository pull tasks
+        future_to_repo = {executor.submit(pull_repository, repo): repo for repo in repos}
+
+        # Process results as they complete
+        for future in as_completed(future_to_repo):
+            repo = future_to_repo[future]
+            repo_name = repo.name
+            completed += 1
+
+            # Update progress counter (same line)
+            sys.stdout.write(f"Pulling repositories [{completed}/{total}]\r")
+            sys.stdout.flush()
+
+            try:
+                result = future.result()
+                results.append((repo_name, result, None))
+            except Exception as exc:
+                results.append((repo_name, {"status": "error"}, exc))
+
+    # Print a newline after progress is complete
+    print()
+
+    # Sort results alphabetically by repository name
+    results.sort(key=lambda x: x[0].lower())
+
+    print("-" * 50)
+    for repo_name, result, exc in results:
         if result["status"] == "not_a_repo":
             print(f"{repo_name:<30}: Not a valid git repository")
         elif result["status"] == "local_changes":
@@ -205,6 +239,8 @@ def pull_repositories(directory="."):
             print(f"{repo_name:<30}: Pull successful")
         elif result["status"] == "pull_failed":
             print(f"{repo_name:<30}: Pull failed")
+        elif result["status"] == "error":
+            print(f"{repo_name:<30}: Error during pull: {exc}")
 
     print("-" * 50)
 
@@ -240,16 +276,50 @@ def push_repositories(directory="."):
     print(f"Attempting to push changes for {len(repos)} git repositories in {directory}")
     print("-" * 50)
 
-    for repo in repos:
-        repo_name = repo.name
-        result = push_repository(repo)
+    total = len(repos)
+    completed = 0
+    results = []
 
+    # Print initial progress
+    sys.stdout.write(f"Pushing repositories [0/{total}]\r")
+    sys.stdout.flush()
+
+    with ThreadPoolExecutor() as executor:
+        # Start all repository push tasks
+        future_to_repo = {executor.submit(push_repository, repo): repo for repo in repos}
+
+        # Process results as they complete
+        for future in as_completed(future_to_repo):
+            repo = future_to_repo[future]
+            repo_name = repo.name
+            completed += 1
+
+            # Update progress counter (same line)
+            sys.stdout.write(f"Pushing repositories [{completed}/{total}]\r")
+            sys.stdout.flush()
+
+            try:
+                result = future.result()
+                results.append((repo_name, result, None))
+            except Exception as exc:
+                results.append((repo_name, {"status": "error"}, exc))
+
+    # Print a newline after progress is complete
+    print()
+
+    # Sort results alphabetically by repository name
+    results.sort(key=lambda x: x[0].lower())
+
+    print("-" * 50)
+    for repo_name, result, exc in results:
         if result["status"] == "not_a_repo":
             print(f"{repo_name:<30}: Not a valid git repository")
         elif result["status"] == "success":
             print(f"{repo_name:<30}: Push successful")
         elif result["status"] == "push_failed":
             print(f"{repo_name:<30}: Push failed (conflict or other issue)")
+        elif result["status"] == "error":
+            print(f"{repo_name:<30}: Error during push: {exc}")
 
     print("-" * 50)
 
