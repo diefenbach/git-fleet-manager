@@ -23,24 +23,27 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Install uv
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install build wheel
-        pip install -e .[dev]
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        uv sync --group test
 
     - name: Lint with ruff
       run: |
-        ruff check .
+        uvx ruff check .
 
     - name: Check formatting with black
       run: |
-        black --check .
+        uvx black --check .
 
     - name: Run security checks with bandit
       run: |
-        bandit -r git_fleet_manager -s B311,B603,B404
+        uvx bandit -r git_fleet_manager -s B311,B603,B404
+
+    - name: Scan for secrets with detect-secrets
+      run: |
+        uvx detect-secrets scan --all-files
 
     - name: Run tests
       run: |
-        pytest
+        uv run pytest

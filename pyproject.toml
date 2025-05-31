@@ -44,13 +44,8 @@ python_functions = "test_*"
 addopts = "-v --cov=git_fleet_manager"
 
 [dependency-groups]
-dev = [
+test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
-    "black>=23.0.0",
-    "ruff>=0.0.200",
-    "bandit>=1.7.0",
-    "pre-commit>=3.0.0",
-    "detect-secrets>=1.4.0",
 ]
