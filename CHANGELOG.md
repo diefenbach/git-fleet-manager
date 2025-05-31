@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Coming soon
 - Future features and improvements will be listed here
 
+## [1.0.2] - 2025-05-31
+
+### Changed
+- Switching to uv.
+
 ## [0.1.3] - 2025-05-15
 
 ### Added
