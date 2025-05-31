@@ -1,5 +1,3 @@
-# [![PyPI version](https://img.shields.io/pypi/v/git-fleet-manager.svg)](https://pypi.org/project/git-fleet-manager/)
-
 name: Publish to PyPI
 
 on:
