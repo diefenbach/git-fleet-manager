@@ -17,10 +17,23 @@ git-fleet-manager is a command-line tool for managing multiple Git repositories 
 
 ## Installation
 
-1. Install git-fleet-manager using pip:
-    ```bash
-    pip install git-fleet-manager
-    ```
+You can install git-fleet-manager using pip:
+
+### From PyPI
+```bash
+pip install git-fleet-manager
+```
+
+### From GitHub (latest development version)
+```bash
+pip install git+https://github.com/diefenbach/git-fleet-manager.git
+```
+
+Alternatively, you can install git-fleet-manager as a tool using uv (recommended):
+
+```bash
+uv tool install git-fleet-manager
+```
 
 2. Verify the installation:
     ```bash
@@ -144,5 +157,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests to i
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## Acknowledgments
+
+This project was created with the assistance of AI tools, including code generation and documentation support.
 
 git-fleet-manager was developed to simplify the management of multiple Git repositories, making it easier to perform batch operations efficiently.
