@@ -24,21 +24,18 @@ requires-python = ">=3.8"
 [project.scripts]
 gfm = "git_fleet_manager.cli:main"
 
-# Bandit configuration
 [tool.bandit]
 exclude_dirs = ["tests", "build"]
 targets = ["git_fleet_manager"]
 skips = ["B311", "B603", "B404"]  # Skip false-positive warnings for random numbers, subprocess without shell=True, and subprocess import
 
-# Black configuration
 [tool.black]
 line-length = 120
 
-# Ruff configuration
 [tool.ruff]
 line-length = 120
 
-# Pytest configuration
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -46,8 +43,7 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --cov=git_fleet_manager"
 
-# Development dependencies
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
