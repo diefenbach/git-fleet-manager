@@ -1,11 +1,11 @@
 # git-fleet-manager
 
-git-fleet-manager is a command-line tool for managing multiple Git repositories at once. It allows you to perform common Git operations such as checking the status, pulling, pushing, and viewing commit logs across multiple repositories in a specified directory.
-
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/diefenbach/git-fleet-manager)
 [![PyPI](https://img.shields.io/pypi/v/git-fleet-manager?label=PyPI)](https://pypi.org/project/git-fleet-manager/)
-[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/downloads/)
+[![Python Versions](https://img.shields.io/badge/python-%3E%3D3.8-blue)](https://www.python.org/downloads/)
 [![Test](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml/badge.svg)](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml)
+
+git-fleet-manager is a command-line tool for managing multiple Git repositories at once. It allows you to perform common Git operations such as checking the status, pulling, pushing, and viewing commit logs across multiple repositories in a specified directory.
 
 ## Features
 
@@ -19,7 +19,13 @@ git-fleet-manager is a command-line tool for managing multiple Git repositories 
 
 ## Installation
 
-You can install git-fleet-manager using pip:
+You can install git-fleet-manager as a tool using uv (recommended):
+
+```bash
+uv tool install git-fleet-manager
+```
+
+Alternatively, you can install git-fleet-manager using pip:
 
 ### From PyPI
 ```bash
@@ -29,12 +35,6 @@ pip install git-fleet-manager
 ### From GitHub (latest development version)
 ```bash
 pip install git+https://github.com/diefenbach/git-fleet-manager.git
-```
-
-Alternatively, you can install git-fleet-manager as a tool using uv (recommended):
-
-```bash
-uv tool install git-fleet-manager
 ```
 
 Verify the installation:
