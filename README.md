@@ -4,6 +4,7 @@ git-fleet-manager is a command-line tool for managing multiple Git repositories 
 
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/diefenbach/git-fleet-manager)
 [![PyPI](https://img.shields.io/pypi/v/git-fleet-manager?label=PyPI)](https://pypi.org/project/git-fleet-manager/)
+[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/downloads/)
 [![Test](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml/badge.svg)](https://github.com/diefenbach/git-fleet-manager/actions/workflows/test.yml)
 
 ## Features
