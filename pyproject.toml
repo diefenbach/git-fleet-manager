@@ -1,6 +1,6 @@
 [project]
 name = "git_fleet_manager"
-version = "1.0.2"
+version = "1.0.3"
 description = "A command line tool for managing several git repositories at once"
 readme = "README.md"
 authors = [
