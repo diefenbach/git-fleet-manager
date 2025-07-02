@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Coming soon
 - Future features and improvements will be listed here
 
+## [1.0.4] - 2025-07-02
+
+### Added
+- Add gfm branch command
+
 ## [1.0.3] - 2025-07-02
 
 ### Added
