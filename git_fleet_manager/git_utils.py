@@ -338,9 +338,9 @@ def log_repository(path, max_commits=10):
         return {"status": "invalid_max_commits"}
 
     try:
-        # Get the commit log
+        # Get the commit log with dates
         log_process = subprocess.run(
-            [GIT_EXECUTABLE, "log", f"--max-count={max_commits_int}", "--oneline"],
+            [GIT_EXECUTABLE, "log", f"--max-count={max_commits_int}", "--pretty=format:%h %ad %s", "--date=short"],
             cwd=path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
