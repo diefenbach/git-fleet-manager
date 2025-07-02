@@ -9,6 +9,7 @@ from git_fleet_manager.git_utils import (
     pull_repositories,
     push_repositories,
     log_repositories,
+    branch_repositories,
 )
 
 
@@ -19,7 +20,7 @@ def main():
     # Add arguments here
     parser.add_argument("--version", action="store_true", help="Print version information and exit")
 
-    parser.add_argument("command", nargs="?", help="Command to execute (status, pull, push, log)")
+    parser.add_argument("command", nargs="?", help="Command to execute (status, pull, push, log, branch)")
 
     parser.add_argument(
         "directory",
@@ -33,6 +34,18 @@ def main():
         type=int,
         default=10,
         help="Maximum number of commits to display for the log command (default: 10)",
+    )
+
+    parser.add_argument(
+        "--with-remote",
+        action="store_true",
+        help="Show remote branches in addition to local branches (for branch command)",
+    )
+
+    parser.add_argument(
+        "--grep",
+        type=str,
+        help="Filter repositories by branch name (for branch command)",
     )
 
     args = parser.parse_args()
@@ -52,6 +65,8 @@ def main():
         push_repositories(args.directory)
     elif args.command == "log":
         log_repositories(args.directory, args.max_commits)
+    elif args.command == "branch":
+        branch_repositories(args.directory, with_remote=args.with_remote, grep_branch=args.grep)
     elif args.command is None:
         parser.print_help()
     else:

@@ -376,3 +376,76 @@ def log_repositories(directory=".", max_commits=10):
             print(f"{repo_name:<30}: Failed to retrieve log")
 
         print("-" * 50)
+
+
+def branch_repository(path, with_remote=False):
+    """Get branch information for a git repository."""
+    if not is_git_repo(path):
+        return {"status": "not_a_repo"}
+
+    try:
+        # Build git branch command based on with_remote flag
+        cmd = [GIT_EXECUTABLE, "branch", "-vv"]
+        if with_remote:
+            cmd.append("-a")  # Show all branches (local and remote)
+
+        branches_process = subprocess.run(
+            cmd,
+            cwd=path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            text=True,
+        )
+        branches = branches_process.stdout.strip()
+
+        return {"status": "success", "branches": branches}
+    except subprocess.CalledProcessError:
+        return {"status": "branch_failed"}
+
+
+def branch_repositories(directory=".", with_remote=False, grep_branch=None):
+    """Display branch information for all git repositories in the given directory."""
+    repos = find_git_repositories(directory)
+
+    if not repos:
+        print(f"No git repositories found in {directory}")
+        return
+
+    # Filter repositories if grep_branch is specified
+    if grep_branch:
+        filtered_repos = []
+        for repo in repos:
+            result = branch_repository(repo, with_remote=with_remote)
+            if result["status"] == "success" and grep_branch in result["branches"]:
+                filtered_repos.append(repo)
+        repos = filtered_repos
+
+    if not repos:
+        if grep_branch:
+            print(f"No git repositories found in {directory} containing branch '{grep_branch}'")
+        else:
+            print(f"No git repositories found in {directory}")
+        return
+
+    branch_type = "all" if with_remote else "local"
+    filter_text = f" containing branch '{grep_branch}'" if grep_branch else ""
+    print(f"Displaying {branch_type} branch information for {len(repos)} git repositories in {directory}{filter_text}")
+    print("-" * 50)
+
+    for repo in repos:
+        repo_name = repo.name
+        result = branch_repository(repo, with_remote=with_remote)
+
+        if result["status"] == "not_a_repo":
+            print(f"{repo_name:<30}: Not a valid git repository")
+        elif result["status"] == "success":
+            print(f"{repo_name}:")
+            for line in result["branches"].split("\n"):
+                line = line.strip()
+                if line:
+                    print(f"  {line}")
+        elif result["status"] == "branch_failed":
+            print(f"{repo_name:<30}: Failed to retrieve branch information")
+
+        print("-" * 50)
