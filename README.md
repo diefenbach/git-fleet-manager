@@ -7,6 +7,19 @@
 
 git-fleet-manager is a command-line tool for managing multiple Git repositories at once. It allows you to perform common Git operations such as checking the status, pulling, pushing, and viewing commit logs across multiple repositories in a specified directory.
 
+## Motivation
+
+When working on projects that involve multiple independent repositories, managing them individually can become tedious and error-prone. git-fleet-manager (gfm) was created to solve this problem by providing a unified interface to perform Git operations across all repositories simultaneously.
+
+This is particularly useful for:
+- Microservice architectures where each service has its own repository
+- Monorepo alternatives where related projects are kept in separate repositories
+- Development environments that require working with multiple interdependent projects
+- Teams that need to ensure consistent state across a collection of repositories
+
+Instead of manually navigating to each repository directory to check status, pull updates, or push changes, git-fleet-manager lets you perform these operations in a single command, saving time and reducing the chance of overlooking repositories.
+
+
 ## Features
 
 - **Recursive Repository Discovery**: Automatically finds all Git repositories in a directory and its subdirectories.
@@ -16,6 +29,7 @@ git-fleet-manager is a command-line tool for managing multiple Git repositories 
   - Pull changes from remote repositories.
   - Push changes to remote repositories.
   - View commit logs for all repositories.
+  - Checkout branches across repositories.
 
 ## Installation
 
@@ -88,6 +102,16 @@ gfm log [directory] [--max-commits MAX_COMMITS]
 - **directory**: The directory to scan for repositories (default: current directory).
 - **--max-commits**: The maximum number of commits to display for each repository (default: 10).
 
+#### `checkout`
+Checkout a specific branch for all repositories in the specified directory. Repositories where the branch doesn't exist will be automatically skipped.
+
+```bash
+gfm checkout [directory] --branch BRANCH_NAME
+```
+
+- **directory**: The directory to scan for repositories (default: current directory).
+- **--branch**: The name of the branch to checkout (required).
+
 #### `--version`
 Display the current version of git-fleet-manager.
 
@@ -127,7 +151,12 @@ subdir/repo2
    gfm log /projects --max-commits 5
    ```
 
-5. Display the version of git-fleet-manager:
+5. Checkout the 'develop' branch for all repositories:
+   ```bash
+   gfm checkout /projects --branch develop
+   ```
+
+6. Display the version of git-fleet-manager:
    ```bash
    gfm --version
    ```

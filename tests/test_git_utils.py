@@ -10,6 +10,7 @@ from git_fleet_manager.git_utils import (
     get_repo_status,
     find_git_repositories,
     pull_repository,
+    checkout_repository,
 )
 
 
@@ -153,6 +154,140 @@ class TestPullRepository:
         mock_subprocess.run.assert_called_once()
 
 
+class TestCheckoutRepository:
+    """Tests for checkout_repository function."""
+
+    @patch("git_fleet_manager.git_utils.is_git_repo")
+    def test_checkout_repository_not_git_repo(self, mock_is_git_repo, mock_subprocess):
+        """Test checkout_repository handles non-git repo."""
+        # Setup
+        mock_is_git_repo.return_value = False
+
+        # Execute
+        result = checkout_repository("/path/to/non_repo", "main")
+
+        # Assert
+        assert result == {"status": "not_a_repo"}
+        mock_is_git_repo.assert_called_once_with("/path/to/non_repo")
+
+    @patch("git_fleet_manager.git_utils.is_git_repo")
+    def test_checkout_repository_branch_not_found(self, mock_is_git_repo, mock_subprocess):
+        """Test checkout_repository handles branch not found."""
+        # Setup
+        mock_is_git_repo.return_value = True
+
+        # Mock local branch check (returns empty)
+        local_branch_process = MagicMock()
+        local_branch_process.stdout = ""
+        local_branch_process.returncode = 0
+
+        # Mock remote branch check (returns empty)
+        remote_branch_process = MagicMock()
+        remote_branch_process.stdout = ""
+        remote_branch_process.returncode = 0
+
+        mock_subprocess.run.side_effect = [local_branch_process, remote_branch_process]
+
+        # Execute
+        result = checkout_repository("/path/to/repo", "nonexistent-branch")
+
+        # Assert
+        assert result == {"status": "branch_not_found"}
+        assert mock_subprocess.run.call_count == 2
+        mock_is_git_repo.assert_called_once_with("/path/to/repo")
+
+    @patch("git_fleet_manager.git_utils.is_git_repo")
+    def test_checkout_repository_success_local_branch(self, mock_is_git_repo, mock_subprocess):
+        """Test checkout_repository successfully checks out existing local branch."""
+        # Setup
+        mock_is_git_repo.return_value = True
+
+        # Mock local branch check (returns branch)
+        local_branch_process = MagicMock()
+        local_branch_process.stdout = "  main"
+        local_branch_process.returncode = 0
+
+        # Mock remote branch check (returns empty)
+        remote_branch_process = MagicMock()
+        remote_branch_process.stdout = ""
+        remote_branch_process.returncode = 0
+
+        # Mock successful checkout
+        checkout_process = MagicMock()
+        checkout_process.returncode = 0
+
+        mock_subprocess.run.side_effect = [local_branch_process, remote_branch_process, checkout_process]
+
+        # Execute
+        result = checkout_repository("/path/to/repo", "main")
+
+        # Assert
+        assert result == {"status": "success"}
+        assert mock_subprocess.run.call_count == 3
+        mock_is_git_repo.assert_called_once_with("/path/to/repo")
+
+    @patch("git_fleet_manager.git_utils.is_git_repo")
+    def test_checkout_repository_success_remote_branch(self, mock_is_git_repo, mock_subprocess):
+        """Test checkout_repository successfully checks out existing remote branch."""
+        # Setup
+        mock_is_git_repo.return_value = True
+
+        # Mock local branch check (returns empty)
+        local_branch_process = MagicMock()
+        local_branch_process.stdout = ""
+        local_branch_process.returncode = 0
+
+        # Mock remote branch check (returns remote branch)
+        remote_branch_process = MagicMock()
+        remote_branch_process.stdout = "  origin/feature-branch"
+        remote_branch_process.returncode = 0
+
+        # Mock successful checkout
+        checkout_process = MagicMock()
+        checkout_process.returncode = 0
+
+        mock_subprocess.run.side_effect = [local_branch_process, remote_branch_process, checkout_process]
+
+        # Execute
+        result = checkout_repository("/path/to/repo", "feature-branch")
+
+        # Assert
+        assert result == {"status": "success"}
+        assert mock_subprocess.run.call_count == 3
+        mock_is_git_repo.assert_called_once_with("/path/to/repo")
+
+    @patch("git_fleet_manager.git_utils.is_git_repo")
+    def test_checkout_repository_checkout_failed(self, mock_is_git_repo, mock_subprocess):
+        """Test checkout_repository handles checkout failure."""
+        # Setup
+        mock_is_git_repo.return_value = True
+
+        # Mock local branch check (returns branch)
+        local_branch_process = MagicMock()
+        local_branch_process.stdout = "  main"
+        local_branch_process.returncode = 0
+
+        # Mock remote branch check (returns empty)
+        remote_branch_process = MagicMock()
+        remote_branch_process.stdout = ""
+        remote_branch_process.returncode = 0
+
+        # Mock failed checkout
+        mock_subprocess.run.side_effect = [
+            local_branch_process,
+            remote_branch_process,
+            subprocess.CalledProcessError(1, "git checkout"),
+        ]
+
+        # Execute
+        result = checkout_repository("/path/to/repo", "main")
+
+        # Assert
+        assert result == {"status": "checkout_failed"}
+        assert mock_subprocess.run.call_count == 3
+        mock_is_git_repo.assert_called_once_with("/path/to/repo")
+
+
 @patch("git_fleet_manager.git_utils.Path")
 @patch("git_fleet_manager.git_utils.os.walk")
 class TestFindgfmepositories:
@@ -201,3 +336,137 @@ class TestFindgfmepositories:
             assert mock_repo2 in result
             mock_is_git_repo.assert_any_call(mock_repo1)
             mock_is_git_repo.assert_any_call(mock_repo2)
+
+
+class TestCheckoutRepositories:
+    """Tests for checkout_repositories bulk function."""
+
+    @patch("builtins.print")
+    def test_checkout_repositories_no_branch_name(self, mock_print):
+        """Test checkout_repositories handles missing branch name."""
+        from git_fleet_manager.git_utils import checkout_repositories
+
+        # Execute
+        checkout_repositories("/test/dir", None)
+
+        # Assert
+        mock_print.assert_called_with("Error: branch_name is required for checkout operation")
+
+    @patch("builtins.print")
+    @patch("git_fleet_manager.git_utils.find_git_repositories")
+    def test_checkout_repositories_no_repos_found(self, mock_find_repos, mock_print):
+        """Test checkout_repositories handles no repositories found."""
+        from git_fleet_manager.git_utils import checkout_repositories
+
+        # Setup
+        mock_find_repos.return_value = []
+
+        # Execute
+        checkout_repositories("/test/dir", "main")
+
+        # Assert
+        mock_find_repos.assert_called_once_with("/test/dir")
+        mock_print.assert_called_with("No git repositories found in /test/dir")
+
+    @patch("sys.stdout")
+    @patch("builtins.print")
+    @patch("git_fleet_manager.git_utils.checkout_repository")
+    @patch("git_fleet_manager.git_utils.find_git_repositories")
+    def test_checkout_repositories_success(self, mock_find_repos, mock_checkout_repo, mock_print, mock_stdout):
+        """Test checkout_repositories successfully processes multiple repositories."""
+        from git_fleet_manager.git_utils import checkout_repositories
+
+        # Setup
+        mock_repo1 = MagicMock()
+        mock_repo1.name = "repo1"
+        mock_repo2 = MagicMock()
+        mock_repo2.name = "repo2"
+        mock_find_repos.return_value = [mock_repo1, mock_repo2]
+
+        mock_checkout_repo.side_effect = [{"status": "success"}, {"status": "branch_not_found"}]
+
+        # Execute
+        checkout_repositories("/test/dir", "develop")
+
+        # Assert
+        mock_find_repos.assert_called_once_with("/test/dir")
+        assert mock_checkout_repo.call_count == 2
+        mock_checkout_repo.assert_any_call(mock_repo1, "develop")
+        mock_checkout_repo.assert_any_call(mock_repo2, "develop")
+
+        # Check that print was called for headers and status messages
+        assert mock_print.call_count >= 3  # At least header + separators + status messages
+
+    @patch("sys.stdout")
+    @patch("builtins.print")
+    @patch("git_fleet_manager.git_utils.checkout_repository")
+    @patch("git_fleet_manager.git_utils.find_git_repositories")
+    def test_checkout_repositories_mixed_results(self, mock_find_repos, mock_checkout_repo, mock_print, mock_stdout):
+        """Test checkout_repositories handles mixed results correctly."""
+        from git_fleet_manager.git_utils import checkout_repositories
+
+        # Setup
+        mock_repo1 = MagicMock()
+        mock_repo1.name = "repo1"
+        mock_repo2 = MagicMock()
+        mock_repo2.name = "repo2"
+        mock_repo3 = MagicMock()
+        mock_repo3.name = "repo3"
+        mock_repo4 = MagicMock()
+        mock_repo4.name = "repo4"
+        mock_find_repos.return_value = [mock_repo1, mock_repo2, mock_repo3, mock_repo4]
+
+        mock_checkout_repo.side_effect = [
+            {"status": "success"},
+            {"status": "branch_not_found"},
+            {"status": "checkout_failed"},
+            {"status": "not_a_repo"},
+        ]
+
+        # Execute
+        checkout_repositories("/test/dir", "feature")
+
+        # Assert
+        mock_find_repos.assert_called_once_with("/test/dir")
+        assert mock_checkout_repo.call_count == 4
+
+        # Check that print was called for the different status messages
+        # We know the function calls print for header, progress, and status messages
+        assert mock_print.call_count >= 4  # At least header + separators + status messages
+
+        # Check that the checkout_repository function was called with correct arguments
+        expected_calls = [
+            (mock_repo1, "feature"),
+            (mock_repo2, "feature"),
+            (mock_repo3, "feature"),
+            (mock_repo4, "feature"),
+        ]
+        actual_calls = [(call[0][0], call[0][1]) for call in mock_checkout_repo.call_args_list]
+        for expected_call in expected_calls:
+            assert expected_call in actual_calls
+
+    @patch("sys.stdout")
+    @patch("builtins.print")
+    @patch("git_fleet_manager.git_utils.checkout_repository")
+    @patch("git_fleet_manager.git_utils.find_git_repositories")
+    def test_checkout_repositories_with_exception(self, mock_find_repos, mock_checkout_repo, mock_print, mock_stdout):
+        """Test checkout_repositories handles exceptions during checkout."""
+        from git_fleet_manager.git_utils import checkout_repositories
+
+        # Setup
+        mock_repo1 = MagicMock()
+        mock_repo1.name = "repo1"
+        mock_find_repos.return_value = [mock_repo1]
+
+        # Mock an exception being raised
+        mock_checkout_repo.side_effect = Exception("Test exception")
+
+        # Execute
+        checkout_repositories("/test/dir", "main")
+
+        # Assert
+        mock_find_repos.assert_called_once_with("/test/dir")
+        mock_checkout_repo.assert_called_once_with(mock_repo1, "main")
+
+        # Check that error is handled and printed
+        assert mock_print.call_count >= 3  # At least header + separators + error message

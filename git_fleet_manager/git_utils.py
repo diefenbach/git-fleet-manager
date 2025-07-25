@@ -404,6 +404,51 @@ def branch_repository(path, with_remote=False):
         return {"status": "branch_failed"}
 
 
+def checkout_repository(path, branch_name):
+    """Attempt to checkout a branch in a git repository."""
+    if not is_git_repo(path):
+        return {"status": "not_a_repo"}
+
+    try:
+        # First check if the branch exists locally or remotely
+        # Check local branches
+        local_branches_process = subprocess.run(
+            [GIT_EXECUTABLE, "branch", "--list", branch_name],
+            cwd=path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        # Check remote branches
+        remote_branches_process = subprocess.run(
+            [GIT_EXECUTABLE, "branch", "-r", "--list", f"*/{branch_name}"],
+            cwd=path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        has_local_branch = bool(local_branches_process.stdout.strip())
+        has_remote_branch = bool(remote_branches_process.stdout.strip())
+
+        if not has_local_branch and not has_remote_branch:
+            return {"status": "branch_not_found"}
+
+        # Attempt to checkout the branch
+        subprocess.run(
+            [GIT_EXECUTABLE, "checkout", branch_name],
+            cwd=path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            text=True,
+        )
+        return {"status": "success"}
+    except subprocess.CalledProcessError:
+        return {"status": "checkout_failed"}
+
+
 def branch_repositories(directory=".", with_remote=False, grep_branch=None):
     """Display branch information for all git repositories in the given directory."""
     repos = find_git_repositories(directory)
@@ -449,3 +494,68 @@ def branch_repositories(directory=".", with_remote=False, grep_branch=None):
             print(f"{repo_name:<30}: Failed to retrieve branch information")
 
         print("-" * 50)
+
+
+def checkout_repositories(directory=".", branch_name=None):
+    """Attempt to checkout a branch for all git repositories in the given directory."""
+    if not branch_name:
+        print("Error: branch_name is required for checkout operation")
+        return
+
+    repos = find_git_repositories(directory)
+
+    if not repos:
+        print(f"No git repositories found in {directory}")
+        return
+
+    print(f"Attempting to checkout branch '{branch_name}' for {len(repos)} git repositories in {directory}")
+    print("-" * 50)
+
+    total = len(repos)
+    completed = 0
+    results = []
+
+    # Print initial progress
+    sys.stdout.write(f"Checking out repositories [0/{total}]\r")
+    sys.stdout.flush()
+
+    with ThreadPoolExecutor() as executor:
+        # Start all repository checkout tasks
+        future_to_repo = {executor.submit(checkout_repository, repo, branch_name): repo for repo in repos}
+
+        # Process results as they complete
+        for future in as_completed(future_to_repo):
+            repo = future_to_repo[future]
+            repo_name = repo.name
+            completed += 1
+
+            # Update progress counter (same line)
+            sys.stdout.write(f"Checking out repositories [{completed}/{total}]\r")
+            sys.stdout.flush()
+
+            try:
+                result = future.result()
+                results.append((repo_name, result, None))
+            except Exception as exc:
+                results.append((repo_name, {"status": "error"}, exc))
+
+    # Print a newline after progress is complete
+    print()
+
+    # Sort results alphabetically by repository name
+    results.sort(key=lambda x: x[0].lower())
+
+    print("-" * 50)
+    for repo_name, result, exc in results:
+        if result["status"] == "not_a_repo":
+            print(f"{repo_name:<30}: Not a valid git repository")
+        elif result["status"] == "branch_not_found":
+            print(f"{repo_name:<30}: Branch '{branch_name}' not found, skipped")
+        elif result["status"] == "success":
+            print(f"{repo_name:<30}: Checkout successful")
+        elif result["status"] == "checkout_failed":
+            print(f"{repo_name:<30}: Checkout failed")
+        elif result["status"] == "error":
+            print(f"{repo_name:<30}: Error during checkout: {exc}")
+
+    print("-" * 50)

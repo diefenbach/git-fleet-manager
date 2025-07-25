@@ -10,6 +10,7 @@ from git_fleet_manager.git_utils import (
     push_repositories,
     log_repositories,
     branch_repositories,
+    checkout_repositories,
 )
 
 
@@ -20,7 +21,7 @@ def main():
     # Add arguments here
     parser.add_argument("--version", action="store_true", help="Print version information and exit")
 
-    parser.add_argument("command", nargs="?", help="Command to execute (status, pull, push, log, branch)")
+    parser.add_argument("command", nargs="?", help="Command to execute (status, pull, push, log, branch, checkout)")
 
     parser.add_argument(
         "directory",
@@ -48,6 +49,12 @@ def main():
         help="Filter repositories by branch name (for branch command)",
     )
 
+    parser.add_argument(
+        "--branch",
+        type=str,
+        help="Branch name to checkout (for checkout command)",
+    )
+
     args = parser.parse_args()
 
     if args.version:
@@ -67,6 +74,11 @@ def main():
         log_repositories(args.directory, args.max_commits)
     elif args.command == "branch":
         branch_repositories(args.directory, with_remote=args.with_remote, grep_branch=args.grep)
+    elif args.command == "checkout":
+        if not args.branch:
+            print("Error: --branch argument is required for checkout command")
+            return 1
+        checkout_repositories(args.directory, args.branch)
     elif args.command is None:
         parser.print_help()
     else:

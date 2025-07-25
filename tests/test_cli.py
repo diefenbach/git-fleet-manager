@@ -89,6 +89,61 @@ class TestMain:
         assert result == 0
         mock_log.assert_called_once_with("/test/dir", 5)
 
+    @patch("git_fleet_manager.cli.branch_repositories")
+    def test_main_branch_command(self, mock_branch, mock_argparse):
+        """Test main function with branch command."""
+        # Setup
+        args = MagicMock()
+        args.command = "branch"
+        args.directory = "/test/dir"
+        args.with_remote = True
+        args.grep = "feature"
+        args.version = False
+        mock_argparse.ArgumentParser().parse_args.return_value = args
+
+        # Execute
+        result = main()
+
+        # Assert
+        assert result == 0
+        mock_branch.assert_called_once_with("/test/dir", with_remote=True, grep_branch="feature")
+
+    @patch("git_fleet_manager.cli.checkout_repositories")
+    def test_main_checkout_command(self, mock_checkout, mock_argparse):
+        """Test main function with checkout command."""
+        # Setup
+        args = MagicMock()
+        args.command = "checkout"
+        args.directory = "/test/dir"
+        args.branch = "develop"
+        args.version = False
+        mock_argparse.ArgumentParser().parse_args.return_value = args
+
+        # Execute
+        result = main()
+
+        # Assert
+        assert result == 0
+        mock_checkout.assert_called_once_with("/test/dir", "develop")
+
+    def test_main_checkout_command_missing_branch(self, mock_argparse):
+        """Test main function with checkout command but missing --branch argument."""
+        # Setup
+        args = MagicMock()
+        args.command = "checkout"
+        args.directory = "/test/dir"
+        args.branch = None
+        args.version = False
+        mock_argparse.ArgumentParser().parse_args.return_value = args
+
+        # Execute
+        with patch("builtins.print") as mock_print:
+            result = main()
+
+        # Assert
+        assert result == 1
+        mock_print.assert_called_once_with("Error: --branch argument is required for checkout command")
+
     @patch("git_fleet_manager.__version__", "0.1.5")
     def test_main_version_flag(self, mock_argparse):
         """Test main function with --version flag."""
