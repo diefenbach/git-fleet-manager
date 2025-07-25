@@ -192,3 +192,13 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 This project was created with the assistance of AI tools, including code generation and documentation support.
 
 git-fleet-manager was developed to simplify the management of multiple Git repositories, making it easier to perform batch operations efficiently.
+
+## Publish a new version
+
+1. Update version in `pyproject.toml`
+2. Update `CHANGELOG.md` with new changes
+3. Commit changes: `git commit -am "Bump version to x.y.z"`
+4. Create a tag: `git tag x.y.z`
+5. Push changes: `git push origin main`
+6. Push tags: `git push origin --tags`
+7. Go to GitHub [https://github.com/diefenbach/git-fleet-manager](https://github.com/diefenbach/git-fleet-manager) and create a new release using the tag
